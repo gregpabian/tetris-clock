@@ -18,8 +18,8 @@ class TetrisClock:
         parser.add_argument("--led-cols", action="store", help="Display columns (default: 64)", default=64, type=int)
         parser.add_argument("-c", "--led-chain", action="store", help="Daisy-chained boards (default: 1)", default=1, type=int)
         parser.add_argument("-P", "--led-parallel", action="store", help="Parallel chains (default: 1)", default=1, type=int)
-        parser.add_argument("-b", "--led-brightness", action="store", help="Brightness (default: 100)", default=100, type=int)
-        parser.add_argument("-m", "--led-gpio-mapping", help="Hardware mapping", default="regular", 
+        parser.add_argument("-b", "--led-brightness", action="store", help="Brightness (default: 100)", default=50, type=int)
+        parser.add_argument("-m", "--led-gpio-mapping", help="Hardware mapping", default="adafruit-hat", 
                            choices=['regular', 'adafruit-hat', 'adafruit-hat-pwm'])
         
         self.args = parser.parse_args()
@@ -39,10 +39,10 @@ class TetrisClock:
         self.tetris = TetrisMatrixDraw(self.matrix)
         
         # Set initial scale based on matrix size
-        if self.args.led_rows >= 64:
-            self.tetris.scale = 2
-        else:
-            self.tetris.scale = 1
+        # if self.args.led_rows >= 64:
+        #     self.tetris.scale = 2
+        # else:
+        self.tetris.scale = 2
 
     def run(self):
         try:
@@ -50,6 +50,9 @@ class TetrisClock:
             
             last_time = ""
             animation_complete = True
+            colon_time = 0
+            sleep_time = 0.05
+            show_colon = True
             
             while True:
                 # Get current time
@@ -64,16 +67,17 @@ class TetrisClock:
                 
                 # Clear the matrix
                 self.matrix.Clear()
+
+                colon_time += sleep_time
+
+                if colon_time >= 1:
+                    show_colon = not show_colon
+                    colon_time = 0
                 
-                # Draw the animated clock
-                # Center it on the display
-                x_pos = (self.matrix.width - self.tetris.calculate_width()) // 2
-                y_pos = self.matrix.height - 2
-                
-                animation_complete = self.tetris.draw_numbers(x_pos, y_pos, True)
+                animation_complete = self.tetris.draw_numbers(2, 26, show_colon)
                 
                 # Small delay before next animation frame
-                time.sleep(0.05)
+                time.sleep(sleep_time)
                 
         except KeyboardInterrupt:
             print("Exiting...")

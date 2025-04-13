@@ -1,14 +1,4 @@
 #!/usr/bin/env python
-import time
-import sys
-import os
-from enum import Enum
-
-# Import the RGB matrix library
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/../..'))
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
-
-
 class FallInstruction:
     """Type that describes how a brick is falling down"""
     def __init__(self, blocktype, color, x_pos, y_stop, num_rot):
