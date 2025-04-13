@@ -31,10 +31,7 @@ class TetrisMatrixDraw:
         self.canvas = canvas
         self.numstates = [NumState() for _ in range(TETRIS_MAX_NUMBERS)]
         self.sizeOfValue = 0
-        self._debug = False
         self.scale = 1
-        self.drawOutline = False
-        self.outLineColour = (0, 0, 0)  # RGB black
         
         # Define Tetris colors (RGB)
         self.tetrisRED = (255, 0, 0)
@@ -58,13 +55,7 @@ class TetrisMatrixDraw:
             self.tetrisORANGE,
             self.tetrisBLACK
         ]
-        
-        # Initialize the fall instruction data for numbers and characters
-        self._init_fall_instructions()
 
-    def _init_fall_instructions(self):
-        """Initialize all fall instructions for numbers and letters"""
-        # Number 0 fall instructions
         self.num_0 = [
             FallInstruction(2, 5, 4, 16, 0),
             FallInstruction(4, 7, 2, 16, 1),
@@ -215,41 +206,10 @@ class TetrisMatrixDraw:
             self.num_0, self.num_1, self.num_2, self.num_3, self.num_4,
             self.num_5, self.num_6, self.num_7, self.num_8, self.num_9
         ]
-        
-        # Initialize letter arrays (simplified version - in a full implementation, 
-        # you would include all letters from TetrisLetters.h)
-        self.letter_arrays = {}
-        self.blocks_per_char = {}
-        
-        # As a simple example, define letter 'A' (ASCII 65)
-        self.letter_arrays[65] = [
-            FallInstruction(0, 2, 0, 16, 0),
-            FallInstruction(0, 1, 4, 16, 0),
-            FallInstruction(5, 5, 3, 14, 1),
-            FallInstruction(4, 2, 0, 14, 1),
-            FallInstruction(4, 1, 4, 13, 0),
-            FallInstruction(5, 0, 0, 13, 0),
-            FallInstruction(4, 3, 4, 11, 0),
-            FallInstruction(5, 2, 0, 11, 0),
-            FallInstruction(0, 1, 2, 10, 0)
-        ]
-        self.blocks_per_char[65] = 9
-        
-        # Add more letters as needed for your application
-
-    def reset_num_states(self):
-        """Reset the state of all digits"""
-        for i in range(TETRIS_MAX_NUMBERS):
-            self.numstates[i].num_to_draw = -1
-            self.numstates[i].fallindex = 0
-            self.numstates[i].blockindex = 0
-            self.numstates[i].x_shift = 0
 
     def set_num_state(self, index, value, x_shift):
         """Set the state of a digit at a given index"""
         if index < TETRIS_MAX_NUMBERS:
-            if self._debug:
-                print(f"Setting digit {index} to value {value}")
             self.numstates[index].num_to_draw = value
             self.numstates[index].x_shift = x_shift
             self.numstates[index].fallindex = 0
@@ -271,176 +231,10 @@ class TetrisMatrixDraw:
             if force_refresh or number != self.numstates[pos].num_to_draw:
                 self.set_num_state(pos, number, x_offset)
 
-    def set_numbers(self, value, force_refresh=False):
-        """Set numeric value to display"""
-        str_value = str(value)
-        if len(str_value) <= TETRIS_MAX_NUMBERS:
-            self.sizeOfValue = len(str_value)
-            for pos in range(self.sizeOfValue):
-                current_x_shift = TETRIS_DISTANCE_BETWEEN_DIGITS * self.scale * pos
-                number = int(str_value[pos])
-                
-                # Only change the number if it's different or being forced
-                if force_refresh or number != self.numstates[pos].num_to_draw:
-                    self.set_num_state(pos, number, current_x_shift)
-                else:
-                    self.numstates[pos].x_shift = current_x_shift
-        else:
-            print("Number too long")
-
-    def set_text(self, txt, force_refresh=False):
-        """Set text to display"""
-        self.sizeOfValue = len(txt)
-        for pos in range(self.sizeOfValue):
-            current_x_shift = TETRIS_DISTANCE_BETWEEN_DIGITS * self.scale * pos
-            letter = txt[pos]
-            
-            # Only change the letter if it's different or being forced
-            if force_refresh or ord(letter) != self.numstates[pos].num_to_draw:
-                self.set_num_state(pos, ord(letter), current_x_shift)
-            else:
-                self.numstates[pos].x_shift = current_x_shift
-
     def draw_pixel(self, x, y, color):
         """Draw a single pixel on the canvas with the specified color"""
         if 0 <= x < self.canvas.width and 0 <= y < self.canvas.height:
             self.canvas.SetPixel(x, y, color[0], color[1], color[2])
-
-    def draw_shape(self, blocktype, color, x_pos, y_pos, num_rot):
-        """Draw a tetris shape at the specified position"""
-        # Square
-        if blocktype == 0:
-            self.draw_pixel(x_pos, y_pos, color)
-            self.draw_pixel(x_pos + 1, y_pos, color)
-            self.draw_pixel(x_pos, y_pos - 1, color)
-            self.draw_pixel(x_pos + 1, y_pos - 1, color)
-        
-        # L-Shape
-        elif blocktype == 1:
-            if num_rot == 0:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-            elif num_rot == 1:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 2, y_pos - 1, color)
-            elif num_rot == 2:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 2, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-            elif num_rot == 3:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos - 1, color)
-        
-        # L-Shape (reverse)
-        elif blocktype == 2:
-            if num_rot == 0:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 2, color)
-            elif num_rot == 1:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-            elif num_rot == 2:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-                self.draw_pixel(x_pos + 1, y_pos - 2, color)
-            elif num_rot == 3:
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 2, y_pos - 1, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-        
-        # I-Shape
-        elif blocktype == 3:
-            if num_rot == 0 or num_rot == 2:  # Horizontal
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-                self.draw_pixel(x_pos + 3, y_pos, color)
-            else:  # Vertical
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-                self.draw_pixel(x_pos, y_pos - 3, color)
-        
-        # S-Shape
-        elif blocktype == 4:
-            if num_rot == 0 or num_rot == 2:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-            else:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 2, y_pos - 1, color)
-        
-        # S-Shape (reversed)
-        elif blocktype == 5:
-            if num_rot == 0 or num_rot == 2:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 2, color)
-            else:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-        
-        # Half cross
-        elif blocktype == 6:
-            if num_rot == 0:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 2, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-            elif num_rot == 1:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 2, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-            elif num_rot == 2:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 2, y_pos - 1, color)
-            elif num_rot == 3:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 2, color)
-        
-        # Corner-Shape
-        elif blocktype == 7:
-            if num_rot == 0:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-            elif num_rot == 1:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-            elif num_rot == 2:
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
-                self.draw_pixel(x_pos, y_pos - 1, color)
-            elif num_rot == 3:
-                self.draw_pixel(x_pos, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos, color)
-                self.draw_pixel(x_pos + 1, y_pos - 1, color)
 
     def fill_rect(self, x, y, w, h, color):
         """Draw a filled rectangle"""
@@ -448,20 +242,9 @@ class TetrisMatrixDraw:
             for j in range(h):
                 self.draw_pixel(x + i, y + j, color)
 
-    def draw_rect(self, x, y, w, h, color):
-        """Draw a rectangle outline"""
-        for i in range(w):
-            self.draw_pixel(x + i, y, color)
-            self.draw_pixel(x + i, y + h - 1, color)
-        for j in range(h):
-            self.draw_pixel(x, y + j, color)
-            self.draw_pixel(x + w - 1, y + j, color)
-
     def draw_larger_block(self, x_pos, y_pos, scale, color):
         """Draw a scaled block"""
         self.fill_rect(x_pos, y_pos, scale, scale, color)
-        if self.drawOutline:
-            self.draw_rect(x_pos, y_pos, scale, scale, self.outLineColour)
 
     def draw_larger_shape(self, scale, blocktype, color, x_pos, y_pos, num_rot):
         """Draw a scaled shape"""
@@ -604,10 +387,6 @@ class TetrisMatrixDraw:
                 self.draw_larger_block(x_pos + offset1, y_pos, scale, color)
                 self.draw_larger_block(x_pos + offset1, y_pos - offset1, scale, color)
 
-    def calculate_width(self):
-        """Calculate the width of the displayed content"""
-        return (self.sizeOfValue * TETRIS_DISTANCE_BETWEEN_DIGITS * self.scale) - 1
-
     def draw_colon(self, x, y, colon_color):
         """Draw the colon for the clock display"""
         colon_size = 2 * self.scale
@@ -620,13 +399,7 @@ class TetrisMatrixDraw:
         if 0 <= num < 10:
             return self.number_arrays[num][blockindex]
         return None
-        
-    def get_fall_instr_by_ascii(self, ascii_code, blockindex):
-        """Return the fall instruction for an ASCII character"""
-        if ascii_code in self.letter_arrays and blockindex < self.blocks_per_char.get(ascii_code, 0):
-            return self.letter_arrays[ascii_code][blockindex]
-        return None
-            
+
     def draw_numbers(self, x=0, y=0, display_colon=False):
         """Draw numbers with tetris animation"""
         finished_animating = True
@@ -661,24 +434,15 @@ class TetrisMatrixDraw:
                             rotations = 2
                     
                     color = self.tetrisColors[current_fall.color]
-                    
-                    if self.scale <= 1:
-                        self.draw_shape(
-                            current_fall.blocktype,
-                            color,
-                            x + current_fall.x_pos + self.numstates[numpos].x_shift,
-                            base_y + self.numstates[numpos].fallindex - scaled_y_offset,
-                            rotations
-                        )
-                    else:
-                        self.draw_larger_shape(
-                            self.scale,
-                            current_fall.blocktype,
-                            color,
-                            x + (current_fall.x_pos * self.scale) + self.numstates[numpos].x_shift,
-                            base_y + (self.numstates[numpos].fallindex * scaled_y_offset) - scaled_y_offset,
-                            rotations
-                        )
+               
+                    self.draw_larger_shape(
+                        self.scale,
+                        current_fall.blocktype,
+                        color,
+                        x + (current_fall.x_pos * self.scale) + self.numstates[numpos].x_shift,
+                        base_y + (self.numstates[numpos].fallindex * scaled_y_offset) - scaled_y_offset,
+                        rotations
+                    )
                     
                     self.numstates[numpos].fallindex += 1
                     
@@ -692,114 +456,16 @@ class TetrisMatrixDraw:
                         fallen_block = self.get_fall_instr_by_num(self.numstates[numpos].num_to_draw, i)
                         color = self.tetrisColors[fallen_block.color]
                         
-                        if self.scale <= 1:
-                            self.draw_shape(
-                                fallen_block.blocktype, 
-                                color, 
-                                x + fallen_block.x_pos + self.numstates[numpos].x_shift,
-                                base_y + fallen_block.y_stop - 1,
-                                fallen_block.num_rot
-                            )
-                        else:
-                            self.draw_larger_shape(
-                                self.scale,
-                                fallen_block.blocktype, 
-                                color,
-                                x + (fallen_block.x_pos * self.scale) + self.numstates[numpos].x_shift,
-                                base_y + (fallen_block.y_stop * scaled_y_offset) - scaled_y_offset,
-                                fallen_block.num_rot
-                            )
+                        self.draw_larger_shape(
+                            self.scale,
+                            fallen_block.blocktype, 
+                            color,
+                            x + (fallen_block.x_pos * self.scale) + self.numstates[numpos].x_shift,
+                            base_y + (fallen_block.y_stop * scaled_y_offset) - scaled_y_offset,
+                            fallen_block.num_rot
+                        )
         
         if display_colon:
             self.draw_colon(x, base_y, self.tetrisWHITE)
-        
-        return finished_animating
-
-    def draw_text(self, x=0, y=0):
-        """Draw text with tetris animation"""
-        finished_animating = True
-        
-        scaled_y_offset = self.scale if self.scale > 1 else 1
-        base_y = y - (TETRIS_Y_DROP_DEFAULT * self.scale)
-        
-        for numpos in range(self.sizeOfValue):
-            ascii_code = self.numstates[numpos].num_to_draw
-            if ascii_code >= 33:  # Valid ASCII character
-                blocks_in_char = self.blocks_per_char.get(ascii_code, 0)
-                
-                # Draw falling shape
-                if self.numstates[numpos].blockindex < blocks_in_char:
-                    finished_animating = False
-                    current_fall = self.get_fall_instr_by_ascii(ascii_code, self.numstates[numpos].blockindex)
-                    
-                    if current_fall:
-                        # Handle rotations
-                        rotations = current_fall.num_rot
-                        if rotations == 1:
-                            if self.numstates[numpos].fallindex < int(current_fall.y_stop / 2):
-                                rotations = 0
-                        elif rotations == 2:
-                            if self.numstates[numpos].fallindex < int(current_fall.y_stop / 3):
-                                rotations = 0
-                            elif self.numstates[numpos].fallindex < int(current_fall.y_stop / 3 * 2):
-                                rotations = 1
-                        elif rotations == 3:
-                            if self.numstates[numpos].fallindex < int(current_fall.y_stop / 4):
-                                rotations = 0
-                            elif self.numstates[numpos].fallindex < int(current_fall.y_stop / 4 * 2):
-                                rotations = 1
-                            elif self.numstates[numpos].fallindex < int(current_fall.y_stop / 4 * 3):
-                                rotations = 2
-                        
-                        color = self.tetrisColors[current_fall.color]
-                        
-                        if self.scale <= 1:
-                            self.draw_shape(
-                                current_fall.blocktype,
-                                color,
-                                x + current_fall.x_pos + self.numstates[numpos].x_shift,
-                                base_y + self.numstates[numpos].fallindex - scaled_y_offset,
-                                rotations
-                            )
-                        else:
-                            self.draw_larger_shape(
-                                self.scale,
-                                current_fall.blocktype,
-                                color,
-                                x + (current_fall.x_pos * self.scale) + self.numstates[numpos].x_shift,
-                                base_y + (self.numstates[numpos].fallindex * scaled_y_offset) - scaled_y_offset,
-                                rotations
-                            )
-                        
-                        self.numstates[numpos].fallindex += 1
-                        
-                        if self.numstates[numpos].fallindex > current_fall.y_stop:
-                            self.numstates[numpos].fallindex = 0
-                            self.numstates[numpos].blockindex += 1
-                
-                # Draw already dropped shapes
-                if self.numstates[numpos].blockindex > 0:
-                    for i in range(self.numstates[numpos].blockindex):
-                        fallen_block = self.get_fall_instr_by_ascii(ascii_code, i)
-                        if fallen_block:
-                            color = self.tetrisColors[fallen_block.color]
-                            
-                            if self.scale <= 1:
-                                self.draw_shape(
-                                    fallen_block.blocktype,
-                                    color,
-                                    x + fallen_block.x_pos + self.numstates[numpos].x_shift,
-                                    base_y + fallen_block.y_stop - 1,
-                                    fallen_block.num_rot
-                                )
-                            else:
-                                self.draw_larger_shape(
-                                    self.scale,
-                                    fallen_block.blocktype,
-                                    color,
-                                    x + (fallen_block.x_pos * self.scale) + self.numstates[numpos].x_shift,
-                                    base_y + (fallen_block.y_stop * scaled_y_offset) - scaled_y_offset,
-                                    fallen_block.num_rot
-                                )
         
         return finished_animating
