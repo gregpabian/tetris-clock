@@ -53,38 +53,54 @@ class TetrisClock:
             print("Press CTRL-C to stop the clock")
             
             last_time = ""
-            animation_complete = True
             colon_time = 0
             show_colon = True
+            
+            # Initial setup - force animation on first run
+            now = datetime.datetime.now()
+            current_time = now.strftime("%H:%M")
+            self.tetris.set_time(current_time, True)
+            animation_active = True
             
             while True:
                 # Get current time
                 now = datetime.datetime.now()
                 current_time = now.strftime("%H:%M")
                 
-                # Set new time if changed or animation completed
-                if current_time != last_time or animation_complete:
-                    self.tetris.set_time(current_time, animation_complete)
+                # Check if time has changed
+                if current_time != last_time:
+                    # Time has changed, start a new animation
+                    self.tetris.set_time(current_time, True)
                     last_time = current_time
-                    animation_complete = False
+                    animation_active = True
                 
-                # Clear the offscreen canvas instead of the active one
+                # Clear the offscreen canvas
                 self.offscreen_canvas.Clear()
 
+                # Update colon blinking
                 colon_time += self.sleep_time
-
                 if colon_time >= 1:
                     show_colon = not show_colon
                     colon_time = 0
                 
-                # Draw on the offscreen canvas
+                # Draw the current state
                 animation_complete = self.tetris.draw_numbers(2, 26, show_colon)
                 
-                # Swap the canvas when drawing is complete
+                # If animation just completed, update state
+                if animation_active and animation_complete:
+                    animation_active = False
+                
+                # Swap buffers
                 self.offscreen_canvas = self.matrix.SwapOnVSync(self.offscreen_canvas)
                 
-                # Small delay before next animation frame
-                time.sleep(self.sleep_time)
+                # Determine sleep time - shorter during animation for smoother motion
+                # Longer when static to save CPU
+                if animation_active:
+                    time.sleep(self.sleep_time)
+                else:
+                    # When not animating, we only need to update to blink the colon
+                    # We can sleep longer, but still need to wake up to check time changes
+                    time.sleep(0.25)  # Check for time changes and update colon 4 times per second
                 
         except KeyboardInterrupt:
             print("Exiting...")
