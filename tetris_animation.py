@@ -26,9 +26,9 @@ TETRIS_Y_DROP_DEFAULT = 16
 
 class TetrisMatrixDraw:
     """Python port of the TetrisMatrixDraw library"""
-    def __init__(self, matrix):
-        """Initialize with an RGB matrix instance"""
-        self.matrix = matrix
+    def __init__(self, canvas):
+        """Initialize with an RGB matrix canvas instance"""
+        self.canvas = canvas
         self.numstates = [NumState() for _ in range(TETRIS_MAX_NUMBERS)]
         self.sizeOfValue = 0
         self._debug = False
@@ -302,9 +302,9 @@ class TetrisMatrixDraw:
                 self.numstates[pos].x_shift = current_x_shift
 
     def draw_pixel(self, x, y, color):
-        """Draw a single pixel on the matrix with the specified color"""
-        if 0 <= x < self.matrix.width and 0 <= y < self.matrix.height:
-            self.matrix.SetPixel(x, y, color[0], color[1], color[2])
+        """Draw a single pixel on the canvas with the specified color"""
+        if 0 <= x < self.canvas.width and 0 <= y < self.canvas.height:
+            self.canvas.SetPixel(x, y, color[0], color[1], color[2])
 
     def draw_shape(self, blocktype, color, x_pos, y_pos, num_rot):
         """Draw a tetris shape at the specified position"""
@@ -640,7 +640,7 @@ class TetrisMatrixDraw:
                 if self.numstates[numpos].blockindex < self.blocks_per_number[self.numstates[numpos].num_to_draw]:
                     finished_animating = False
                     current_fall = self.get_fall_instr_by_num(self.numstates[numpos].num_to_draw, 
-                                                           self.numstates[numpos].blockindex)
+                                                          self.numstates[numpos].blockindex)
                     
                     # Handle rotations
                     rotations = current_fall.num_rot
